@@ -1,0 +1,10 @@
+# output
+build/
+*.log
+
+# IDE files
+.idea/
+*.iml
+
+# build tools
+.gradle

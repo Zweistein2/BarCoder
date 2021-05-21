@@ -1,0 +1,79 @@
+plugins {
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.8' // REMOVE, FOR TESTS ONLY
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id 'jacoco'
+    id 'idea'
+    id 'java'
+}
+
+group 'de.zweistein2.barcoder'
+version '1.0-SNAPSHOT'
+sourceCompatibility = '15'
+targetCompatibility = '15'
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "15"
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "15"
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    maven {
+        url "https://reposilite.potionlabs.de/releases"
+        credentials {
+            username = "admin"
+            password = "wTSQlH2SeI78wg+r4/nvpxeRGTttaaKsXnTmcINVfyL6pWk5h6OUq/aLMUj0P0XY"
+        }
+    }
+    maven {
+        url "https://reposilite.potionlabs.de/snapshots"
+        credentials {
+            username = "admin"
+            password = "wTSQlH2SeI78wg+r4/nvpxeRGTttaaKsXnTmcINVfyL6pWk5h6OUq/aLMUj0P0XY"
+        }
+    }
+}
+
+// REMOVE, FOR TESTS ONLY
+javafx {
+    version = "11.0.2"
+    modules = ['javafx.controls', 'javafx.graphics']
+}
+
+dependencies {
+    implementation 'no.tornado:tornadofx:1.7.20' // REMOVE, FOR TESTS ONLY
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-log4j12:1.7.30'
+    implementation 'io.github.microutils:kotlin-logging:1.12.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    testImplementation 'org.slf4j:slf4j-log4j12:1.7.30'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testImplementation 'org.mockito:mockito-core:3.5.10'
+}
+
+test {
+    useJUnitPlatform()
+    // report is always generated after tests run
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    // You may modify the Jacoco version here
+    toolVersion = "0.8.6"
+}
+
+jacocoTestReport {
+    // tests are required to run before generating the report
+    dependsOn test
+    // Adjust the output of the test report
+    reports {
+        xml.enabled true
+        csv.enabled false
+    }
+}
