@@ -532,7 +532,7 @@ class QRCodeEncoder : BarcodeEncoder {
                 output
             }
             EncodingMode.BINARY -> {
-                output += content.toCharArray().map { it.toInt().toBinaryString(8) }.reduce { s1, s2 -> s1 + s2 }
+                output += content.toCharArray().map { it.code.toBinaryString(8) }.reduce { s1, s2 -> s1 + s2 }
 
                 output
             }

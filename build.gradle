@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.8' // REMOVE, FOR TESTS ONLY
-    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
+    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
     id 'jacoco'
     id 'idea'
     id 'java'
@@ -65,7 +65,7 @@ test {
 
 jacoco {
     // You may modify the Jacoco version here
-    toolVersion = "0.8.6"
+    toolVersion = "0.8.7"
 }
 
 jacocoTestReport {
