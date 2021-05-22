@@ -54,7 +54,7 @@ class QRCodeEncoder : BarcodeEncoder {
         require(content.isNotBlank()) { "the content shouldn't be empty" }
 
         val errorCorrectionLevel = parameters[EncodingParameter.ERROR_CORRECTION_LEVEL]?.let { ErrorCorrectionLevel.valueOf(it) } ?: ErrorCorrectionLevel.L
-        val charset = parameters[EncodingParameter.CHARSET]?.let { Charset.valueOf(it) } ?: Charset.UTF_8
+        val charset = parameters[EncodingParameter.CHARSET]?.let { Charset.valueOf(it) } ?: Charset.ISO_8859_1
         val encodingMode = getEncodingModeForContent(content, charset)
 
         var version: Int = -1

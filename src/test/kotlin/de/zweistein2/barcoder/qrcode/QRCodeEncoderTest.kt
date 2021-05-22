@@ -1,13 +1,37 @@
 package de.zweistein2.barcoder.qrcode
 
 import de.zweistein2.barcoder.BarcodeEncoder.BarcodeEncoderFactory.getEncoder
+import de.zweistein2.barcoder.BarcodeEncoder.BarcodeEncoderFactory.toBufferedImage
 import de.zweistein2.barcoder.BarcodeFormat
-import org.junit.jupiter.api.Test
-
+import de.zweistein2.barcoder.EncodingParameter
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
+import java.io.File
+import javax.imageio.ImageIO
 
 internal class QRCodeEncoderTest {
     private val encoder = BarcodeFormat.QR_CODE.getEncoder() as QRCodeEncoder
+
+    @Test
+    fun encodeTest() {
+        val matrix = encoder.encode("https://github.com/Zweistein2/BarCoder", mutableMapOf(Pair(EncodingParameter.ERROR_CORRECTION_LEVEL, ErrorCorrectionLevel.M.name)))
+
+        val testImg = ImageIO.read(File("src/test/resources/test.png"))
+        val img = matrix.toBufferedImage(10)
+
+        assertEquals(testImg.width, img.width)
+        assertEquals(testImg.height, img.height)
+
+        for (y in 0 until testImg.height) {
+            for (x in 0 until testImg.width) {
+                // Compare the pixels for equality.
+                if (testImg.getRGB(x, y) != img.getRGB(x, y)) {
+                    fail { "Pictures do not match!" }
+                }
+            }
+        }
+    }
 
     @Test
     fun getGeneratorPolynomialTest() {
