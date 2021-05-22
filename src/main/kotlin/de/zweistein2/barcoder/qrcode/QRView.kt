@@ -9,8 +9,7 @@ class QRView: View() {
     override val root = stackpane {
         group {
             val encoder = BarcodeFormat.QR_CODE.getEncoder() as QRCodeEncoder
-            val matrix = encoder.encode("https://fooding.potionlabs.de/recipes?id=6070f693c993e17705ed7f89", mutableMapOf(Pair(
-                EncodingParameter.ERROR_CORRECTION_LEVEL, ErrorCorrectionLevel.M.name)))
+            val matrix = encoder.encode("https://github.com/Zweistein2/BarCoder", mutableMapOf(Pair(EncodingParameter.ERROR_CORRECTION_LEVEL, ErrorCorrectionLevel.M.name)))
 
             val size = 10.0
 

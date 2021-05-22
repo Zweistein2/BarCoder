@@ -2,6 +2,7 @@ package de.zweistein2.barcoder.qrcode
 
 import de.zweistein2.barcoder.BarcodeEncoder
 import de.zweistein2.barcoder.EncodingParameter
+import de.zweistein2.barcoder.util.Polynomial
 import java.util.stream.Collectors
 import kotlin.math.*
 
@@ -59,8 +60,7 @@ class QRCodeEncoder : BarcodeEncoder {
         var version: Int = -1
 
         for(i in 1..40) {
-            val capacityInBits = getDataCapacityInBits(getCapacityInBits(i), i, errorCorrectionLevel)
-            val capacityForEncodingMode = getDataCapacityForEncodingMode(i, capacityInBits, encodingMode)
+            val capacityForEncodingMode = getDataCapacityForEncodingMode(i, errorCorrectionLevel, encodingMode)
 
             if(content.toList().size < capacityForEncodingMode) {
                 version = i
@@ -218,7 +218,7 @@ class QRCodeEncoder : BarcodeEncoder {
         return result.coefficients
     }
 
-    private fun getGeneratorPolynomial(errorCorrectionCodewordsToBeGenerated: Int): Polynomial {
+    fun getGeneratorPolynomial(errorCorrectionCodewordsToBeGenerated: Int): Polynomial {
         var generatorPolynomial = Polynomial(1, mutableListOf(1, Polynomial.powerGalois(0)))
         for(i in 1 until errorCorrectionCodewordsToBeGenerated) {
             generatorPolynomial = generatorPolynomial.multiplyWith(Polynomial(1, mutableListOf(1, Polynomial.powerGalois(i))))
@@ -242,7 +242,7 @@ class QRCodeEncoder : BarcodeEncoder {
         return (size * size - (positionBlockCount * positionBlockSize + alignmentBlockCount * alignmentBlockSize + timingSize) - (versionSize + formatSize))
     }
 
-    private fun getErrorCorrectionCodesPerBlock(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Int {
+    fun getErrorCorrectionCodesPerBlock(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Int {
         // FIXME: No hardcoded table -> try to figure out how they can be calculated
 
         return when("$version-${errorCorrectionLevel.name}") {
@@ -269,7 +269,7 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
-    private fun getDataBlockCountForGroups(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Pair<Int, Int?> {
+    fun getDataBlockCountForGroups(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Pair<Int, Int?> {
         // FIXME: No hardcoded table -> try to figure out how they can be calculated
 
         return when("$version-${errorCorrectionLevel.name}") {
@@ -448,7 +448,8 @@ class QRCodeEncoder : BarcodeEncoder {
         return capacityInBits - errorCorrectionBits
     }
 
-    private fun getDataCapacityForEncodingMode(version: Int, dataCapacityInBits: Int, encodingMode: EncodingMode): Int {
+    fun getDataCapacityForEncodingMode(version: Int, errorCorrectionLevel: ErrorCorrectionLevel, encodingMode: EncodingMode): Int {
+        val dataCapacityInBits = getDataCapacityInBits(getCapacityInBits(version), version, errorCorrectionLevel)
         // capacityInBits - 4 Bits (to select encoding mode) - Character Count Indicator / Bits per X Digits * X Digits = Charcount
         return ((dataCapacityInBits - 4.0 - getCharCountIndicatorSize(version, encodingMode)) / encodingMode.bitsPerDigits * encodingMode.digits).toInt()
     }
@@ -489,7 +490,7 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
-    private fun getEncodingModeForContent(content: String, charset: Charset): EncodingMode {
+    fun getEncodingModeForContent(content: String, charset: Charset): EncodingMode {
         return when {
             content.matches(Regex("^\\d+$")) -> { EncodingMode.NUMERIC }
             content.chars().allMatch { alphaNumericChars.contains(it.toChar()) } -> { EncodingMode.ALPHANUMERIC }

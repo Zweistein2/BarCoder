@@ -1,4 +1,4 @@
-package de.zweistein2.barcoder.qrcode
+package de.zweistein2.barcoder.util
 
 import kotlin.math.pow
 
@@ -25,45 +25,6 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
             }
 
             return result
-        }
-
-        fun Polynomial.toAlphaNotation(): String {
-            val result: StringBuilder = StringBuilder()
-
-            for (i in degree downTo 0) {
-                var coefficient: Int = coefficients.reversed()[i]
-
-                if (coefficient != 0) {
-                    if (coefficient < 0) {
-                        if (i == degree) {
-                            result.append("-")
-                        } else {
-                            result.append(" - ")
-                        }
-                        coefficient = -coefficient
-                    } else {
-                        if (result.isNotEmpty()) {
-                            result.append(" + ")
-                        }
-                    }
-
-                    if (i == 0 || coefficient != 1) {
-                        val alphaPower: Int = getGaloisExponent(coefficient)
-
-                        result.append("a^")
-                        result.append(alphaPower)
-                    }
-
-                    if (i == 1) {
-                        result.append('x')
-                    } else if(i > 1) {
-                        result.append("x^")
-                        result.append(i)
-                    }
-                }
-            }
-
-            return result.toString()
         }
     }
 
