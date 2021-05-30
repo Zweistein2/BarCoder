@@ -16,9 +16,19 @@
 
 package de.zweistein2.barcoder.qrcode
 
+/**
+ * These are the error correction levels that can be used to generate a qr code
+ *
+ * Mode L is capable of recovering the data if up to 7% of the qr code is lost\
+ * Mode M is capable of recovering the data if up to 15% of the qr code is lost\
+ * Mode Q is capable of recovering the data if up to 25% of the qr code is lost\
+ * Mode H is capable of recovering the data if up to 30% of the qr code is lost
+ *
+ * @param bitSequence The binary string representation of the error correction level (needed to generate the appropriate format bits)
+ */
 enum class ErrorCorrectionLevel(val bitSequence: String) {
-    L("01"),      // Low          7%  of data bytes can be restored.
-    M("00"),      // Medium       15% of data bytes can be restored.
-    Q("11"),      // Quartile     25% of data bytes can be restored.
-    H("10")       // High         30% of data bytes can be restored.
+    L("01"),
+    M("00"),
+    Q("11"),
+    H("10")
 }

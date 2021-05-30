@@ -27,9 +27,9 @@ internal class MatrixUtilTest {
 
     @Test
     fun initiateMatrixTest() {
-        val matrixVersion1 = MatrixUtil.initiateMatrix(1)
-        val matrixVersion24 = MatrixUtil.initiateMatrix(24)
-        val matrixVersion40 = MatrixUtil.initiateMatrix(40)
+        val matrixVersion1 = MatrixUtil.initializeMatrix(1)
+        val matrixVersion24 = MatrixUtil.initializeMatrix(24)
+        val matrixVersion40 = MatrixUtil.initializeMatrix(40)
 
         assertEquals(21, matrixVersion1.values().size)
         assertEquals(113, matrixVersion24.values().size)
@@ -57,7 +57,7 @@ internal class MatrixUtilTest {
 
     @Test
     fun placeStuffInMatrixTest() {
-        val matrix = MatrixUtil.initiateMatrix(7)
+        val matrix = MatrixUtil.initializeMatrix(7)
 
         // 7-Q "THIS IS SOME TEXT FOR TESTING PURPOSES ONLY. FOR THE TEST WE NEED A VERSION 7 QRCODE SO WE HAVE TO ADD TEXT."
         val finalPayload = mutableListOf(35, 87, 54, 154, 74, 169, 101, 115, 66, 212, 249, 122, 42, 142, 12, 34, 194, 134,
@@ -86,8 +86,8 @@ internal class MatrixUtilTest {
             }
         }
 
-        MatrixUtil.placeFormatInMatrix(matrix, formatString)
-        MatrixUtil.placeVersionInMatrix(matrix, versionString)
+        MatrixUtil.placeFormatInMatrix(matrix.values(), formatString)
+        MatrixUtil.placeVersionInMatrix(matrix.values(), versionString)
 
         val finalMatrix = "\n" +
                 "@@@@@@@___@___@____@_@__@@__@___@@__@_@@@@@@@\n" +

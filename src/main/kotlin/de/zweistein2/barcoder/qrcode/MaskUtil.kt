@@ -20,7 +20,22 @@ import de.zweistein2.barcoder.qrcode.QRCodeEncoder.Companion.toMatrix
 import kotlin.math.min
 import kotlin.math.roundToInt
 
+/**
+ * A utility class for all mask-related functions
+ */
 object MaskUtil {
+    /**
+     * This method determines the penalty score.\
+     * The penalty is a value that is determined by the position of white and black modules
+     * based on four evaluation conditions defined in the qr code specification.
+     *
+     * The mask pattern with the lowest penalty score is the mask pattern that must be used for the qr code.
+     *
+     * @param matrix The data values of the matrix (including the function patterns and reserved areas)
+     * @param reserved The reserved values of the matrix (so those won't be masked)
+     * @param maskPattern The mask pattern to be evaluated
+     * @return The calculated penalty score
+     */
     fun determineMaskPenalty(matrix: Array<BooleanArray>, reserved: Array<BooleanArray>, maskPattern: MaskPattern): Int {
         val tempMatrix = Array(matrix.size) { BooleanArray(matrix.size) }
         for ((rowIndex, row) in matrix.withIndex()) {
@@ -54,6 +69,12 @@ object MaskUtil {
         return penalty
     }
 
+    /**
+     * A small method to flip the current matrix values (row <-> column)
+     *
+     * @param matrix The matrix to be flipped
+     * @return The flipped matrix
+     */
     private fun flipMatrix(matrix: Array<BooleanArray>): Array<BooleanArray> {
         val tempMatrix = Array(matrix.size) { BooleanArray(matrix.size) }
 
@@ -66,6 +87,13 @@ object MaskUtil {
         return tempMatrix
     }
 
+    /**
+     * This method calculates the penalty score based on the first evaluation condition.\
+     * See the qr code specification for more details
+     *
+     * @param matrixAsString A string which represents the data values of the matrix
+     * @return The calculated penalty score
+     */
     private fun getFirstPenalty(matrixAsString: String): Int {
         var penalty = 0
 
@@ -80,6 +108,13 @@ object MaskUtil {
         return penalty
     }
 
+    /**
+     * This method calculates the penalty score based on the second evaluation condition.\
+     * See the qr code specification for more details
+     *
+     * @param matrix The data values of the matrix
+     * @return The calculated penalty score
+     */
     private fun getSecondPenalty(matrix: Array<BooleanArray>): Int {
         var penalty = 0
 
@@ -97,6 +132,13 @@ object MaskUtil {
         return penalty
     }
 
+    /**
+     * This method calculates the penalty score based on the third evaluation condition.\
+     * See the qr code specification for more details
+     *
+     * @param matrixAsString A string which represents the data values of the matrix
+     * @return The calculated penalty score
+     */
     private fun getThirdPenalty(matrixAsString: String): Int {
         var penalty = 0
 
@@ -111,6 +153,13 @@ object MaskUtil {
         return penalty
     }
 
+    /**
+     * This method calculates the penalty score based on the fourth evaluation condition.\
+     * See the qr code specification for more details
+     *
+     * @param matrix The data values of the matrix
+     * @return The calculated penalty score
+     */
     private fun getFourthPenalty(matrix: Array<BooleanArray>): Int {
         var darkCells = 0
 

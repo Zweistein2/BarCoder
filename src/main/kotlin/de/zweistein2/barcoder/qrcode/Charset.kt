@@ -16,6 +16,11 @@
 
 package de.zweistein2.barcoder.qrcode
 
+/**
+ * These are the charsets that can be used to generate a qr code
+ *
+ * Kanji can be used with UTF_8 or SHIFT_JIS where SHIFT_JIS yields the higher capacity
+ */
 enum class Charset {
     UTF_8,
     ISO_8859_1,

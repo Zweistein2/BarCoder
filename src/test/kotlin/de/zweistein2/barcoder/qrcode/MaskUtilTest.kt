@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 
 internal class MaskUtilTest {
-    private val matrix = MatrixUtil.initiateMatrix(1)
+    private val matrix = MatrixUtil.initializeMatrix(1)
 
     @BeforeEach
     fun setUp() {

@@ -16,6 +16,9 @@
 
 package de.zweistein2.barcoder
 
+/**
+ * These are the encoding parameters which can be set for the generation
+ */
 enum class EncodingParameter {
     ERROR_CORRECTION_LEVEL,
     CHARSET

@@ -16,6 +16,10 @@
 
 package de.zweistein2.barcoder
 
+/**
+ * These are the formats for the barcode to be generated\
+ * (Currently QR Codes only)
+ */
 enum class BarcodeFormat {
     QR_CODE
 }

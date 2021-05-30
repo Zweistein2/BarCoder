@@ -18,31 +18,59 @@ package de.zweistein2.barcoder.qrcode
 
 import de.zweistein2.barcoder.BarcodeEncoder
 import de.zweistein2.barcoder.EncodingParameter
+import de.zweistein2.barcoder.util.GaloisUtil.powerGalois
 import de.zweistein2.barcoder.util.Polynomial
 import java.util.stream.Collectors
 import kotlin.math.*
 
+/**
+ * This class represents an encoder for generating qr codes
+ */
 class QRCodeEncoder : BarcodeEncoder {
     companion object {
+        /**
+         * The chars to be used by the alphanumeric encoding mode
+         */
         val alphaNumericChars = listOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
                                        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
                                        'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
                                        'U', 'V', 'W', 'X', 'Y', 'Z', ' ', '$', '%', '*',
                                        '+', '-', '.', '/', ':')
-        val endBitSequence = "1110110000010001"
 
+        /**
+         * This methods rounds a [Double] down to an even [Int]
+         *
+         * @return The rounded number
+         */
         fun Double.roundDownToEvenInt(): Int {
             return (this / 2).toInt() * 2
         }
 
+        /**
+         * This methods generates the binary string representation of a [Byte] with optional padding (at the beginning)
+         *
+         * @param padLeft How long (in bits) the final string should be (if shorter, than it will be padded at the beginning with '0')
+         * @return The binary string representation
+         */
         fun Byte.toBinaryString(padLeft: Int = 8): String {
             return String.format("%${padLeft}s", Integer.toBinaryString(this.toInt())).replace(' ', '0')
         }
 
+        /**
+         * This methods generates the binary string representation of a [Int] with optional padding (at the beginning)
+         *
+         * @param padLeft How long (in bits) the final string should be (if shorter, than it will be padded at the beginning with '0')
+         * @return The binary string representation
+         */
         fun Int.toBinaryString(padLeft: Int = 8): String {
             return String.format("%${padLeft}s", Integer.toBinaryString(this)).replace(' ', '0')
         }
 
+        /**
+         * This method generates the string representation of a barcode-matrix
+         *
+         * @return The matrix represented as a string
+         */
         fun Array<BooleanArray>.toMatrix(): String {
             var output = ""
 
@@ -57,15 +85,33 @@ class QRCodeEncoder : BarcodeEncoder {
             return output
         }
 
+        /**
+         * This methods returns the data value matrix of a given matrix-map
+         *
+         * @return The data value matrix
+         */
         fun Map<String, Array<BooleanArray>>.values(): Array<BooleanArray> {
             return this.getValue("Values")
         }
 
+        /**
+         * This methods returns the reserved area matrix of a given matrix-map
+         *
+         * @return The reserved area matrix
+         */
         fun Map<String, Array<BooleanArray>>.reserved(): Array<BooleanArray> {
             return this.getValue("Reserved")
         }
     }
 
+    /**
+     * This method encodes a given content into a qr code-matrix\
+     * It's possible to use additional parameters to configure the encoding
+     *
+     * @param content The content which shall be encoded
+     * @param parameters The Parameters to be used for encoding
+     * @return A barcode-matrix
+     */
     override fun encode(content: String, parameters: MutableMap<EncodingParameter, String>): Array<BooleanArray> {
         require(content.isNotBlank()) { "the content shouldn't be empty" }
 
@@ -84,7 +130,7 @@ class QRCodeEncoder : BarcodeEncoder {
             }
         }
 
-        check(version != -1) { "content is too big for a qr-code" }
+        check(version != -1) { "content is too big for a qr code" }
 
         val encodedContentAsBinaryString = encodeContent(content, encodingMode)
 
@@ -100,7 +146,7 @@ class QRCodeEncoder : BarcodeEncoder {
                 }
 
                 while (payloadAsBinaryString.length < dataCapacityInBits) {
-                    payloadAsBinaryString = "$payloadAsBinaryString$endBitSequence"
+                    payloadAsBinaryString = "${payloadAsBinaryString}1110110000010001"
                 }
 
                 payloadAsBinaryString = payloadAsBinaryString.substring(0, dataCapacityInBits)
@@ -111,20 +157,27 @@ class QRCodeEncoder : BarcodeEncoder {
 
         val finalPayload = getDataWithInterleavedErrorCorrection(version, errorCorrectionLevel, dataCapacityInBits, payloadAsBinaryString)
 
-        val matrix = MatrixUtil.initiateMatrix(version)
+        val matrix = MatrixUtil.initializeMatrix(version)
         MatrixUtil.placePayloadInMatrix(matrix, finalPayload)
 
         val usedMask = putMaskOverMatrix(matrix)
         val formatString = generateFormatString(errorCorrectionLevel, usedMask)
-        MatrixUtil.placeFormatInMatrix(matrix, formatString)
+        MatrixUtil.placeFormatInMatrix(matrix.values(), formatString)
         if(version >= 7) {
             val versionString = generateVersionString(version)
-            MatrixUtil.placeVersionInMatrix(matrix, versionString)
+            MatrixUtil.placeVersionInMatrix(matrix.values(), versionString)
         }
 
         return matrix.values()
     }
 
+    /**
+     * This method generates the format bits and outputs its binary string representation
+     *
+     * @param errorCorrectionLevel The error correction level which was used to generate the error correction bits
+     * @param usedMask The mask which was used to mask the data bits
+     * @return The format bits as a binary string
+     */
     private fun generateFormatString(errorCorrectionLevel: ErrorCorrectionLevel, usedMask: MaskPattern): String {
         val generatorPolynomial = 0b10100110111.toBinaryString()
         val bitSequence = 0b101010000010010
@@ -143,6 +196,12 @@ class QRCodeEncoder : BarcodeEncoder {
         return ((errorCorrectionLevel.bitSequence + usedMask.bitSequence + result).toInt(2) xor bitSequence).toBinaryString(15)
     }
 
+    /**
+     * This method generates the version bits and outputs its binary string representation
+     *
+     * @param version The version used to generate the qr code
+     * @return The version bits as a binary string
+     */
     private fun generateVersionString(version: Int): String {
         val generatorPolynomial = 0b1111100100101.toBinaryString()
         val bits = (version.toBinaryString(6).padEnd(18, '0').trimStart('0')).padEnd(13, '0')
@@ -160,6 +219,15 @@ class QRCodeEncoder : BarcodeEncoder {
         return (version.toBinaryString(6) + result).padStart(18, '0')
     }
 
+    /**
+     * This method generates the error correction bits and interleaves them with the data bits
+     *
+     * @param version The version to be used
+     * @param errorCorrectionLevel The error correction level to be used
+     * @param dataCapacityInBits The data capacity for this encoding mode and error correction level
+     * @param payloadAsBinaryString The payload as a binary string
+     * @return The interleaved data and error correction bits as a list of 8-bit numbers
+     */
     private fun getDataWithInterleavedErrorCorrection(version: Int, errorCorrectionLevel: ErrorCorrectionLevel, dataCapacityInBits: Int, payloadAsBinaryString: String): MutableList<Int> {
         val payloadAsDecimalNumbers = payloadAsBinaryString.chunked(8).stream().map { it.toInt(2) }.collect(Collectors.toList())
         val errorCorrectionCodesPerBlock = getErrorCorrectionCodesPerBlock(version, errorCorrectionLevel)
@@ -195,6 +263,12 @@ class QRCodeEncoder : BarcodeEncoder {
         return interleaveCodewords(codeBlocks)
     }
 
+    /**
+     * This method actually interleaves the error correction bits with the data bits
+     *
+     * @param codeBlocks The blocks to be interleaved consisting of error correction bits and data bits (hence two lists)
+     * @return The interleaved data and error correction bits as a list of 8-bit numbers
+     */
     private fun interleaveCodewords(codeBlocks: MutableList<Pair<MutableList<Int>, MutableList<Int>>>): MutableList<Int> {
         val size = codeBlocks.stream().map { it.first.size }.max { o1, o2 -> max(o1, o2) }.orElse(0)
         val interleavedDataCodewords = mutableListOf<Int>()
@@ -221,6 +295,13 @@ class QRCodeEncoder : BarcodeEncoder {
         return interleavedCodewords
     }
 
+    /**
+     * This method generates the error correction bits for a block of data bits
+     *
+     * @param dataCodewords The data bits as a list of 8-bit numbers
+     * @param errorCorrectionCodewordsToBeGenerated How many error correction codewords (8-bit numbers) should be generated
+     * @return The generated error correction bits as a list of 8-bit numbers
+     */
     private fun generateErrorCorrectionCodewordsForBlock(dataCodewords: MutableList<Int>, errorCorrectionCodewordsToBeGenerated: Int): MutableList<Int> {
         val generatorPolynomial = getGeneratorPolynomial(errorCorrectionCodewordsToBeGenerated).multiplyByMonomial(dataCodewords.size - 1)
         val messagePolynomial = Polynomial(dataCodewords.size - 1, dataCodewords).multiplyByMonomial(errorCorrectionCodewordsToBeGenerated)
@@ -234,15 +315,27 @@ class QRCodeEncoder : BarcodeEncoder {
         return result.coefficients
     }
 
+    /**
+     * This method generates the generator polynomial based on how many error correction codewords are needed for the qr code to be generated
+     *
+     * @param errorCorrectionCodewordsToBeGenerated The amount of error correction codewords (8-bit numbers) which are needed for qr code generation
+     * @return The generator polynomial which can be used to generate the error correction codewords
+     */
     fun getGeneratorPolynomial(errorCorrectionCodewordsToBeGenerated: Int): Polynomial {
-        var generatorPolynomial = Polynomial(1, mutableListOf(1, Polynomial.powerGalois(0)))
+        var generatorPolynomial = Polynomial(1, mutableListOf(1, powerGalois(0)))
         for(i in 1 until errorCorrectionCodewordsToBeGenerated) {
-            generatorPolynomial = generatorPolynomial.multiplyWith(Polynomial(1, mutableListOf(1, Polynomial.powerGalois(i))))
+            generatorPolynomial = generatorPolynomial.multiplyWith(Polynomial(1, mutableListOf(1, powerGalois(i))))
         }
 
         return generatorPolynomial
     }
 
+    /**
+     * This method gets the total capacity (data + error correction) in bits for a specific version
+     *
+     * @param version The version for which the total capacity shall be determined
+     * @return The total capacity in bits
+     */
     private fun getCapacityInBits(version: Int): Int {
         val size = version * 4 + 17
         // See https://en.wikipedia.org/wiki/QR_code#/media/File:QR_Code_Structure_Example_3.svg
@@ -258,6 +351,13 @@ class QRCodeEncoder : BarcodeEncoder {
         return (size * size - (positionBlockCount * positionBlockSize + alignmentBlockCount * alignmentBlockSize + timingSize) - (versionSize + formatSize))
     }
 
+    /**
+     * This method gets the amount of error correction codewords needed per block
+     *
+     * @param version The version used by the qr code generation
+     * @param errorCorrectionLevel The error correction level used by the qr code generation
+     * @return The amount of error correction codewords needed per block
+     */
     fun getErrorCorrectionCodesPerBlock(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Int {
         // FIXME: No hardcoded table -> try to figure out how they can be calculated
 
@@ -285,6 +385,13 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method gets the amount of data blocks needed per group
+     *
+     * @param version The version used by the qr code generation
+     * @param errorCorrectionLevel The error correction level used by the qr code generation
+     * @return The amount of data blocks for each group (as there are two groups, it returns a [Pair] of [Int]s)
+     */
     fun getDataBlockCountForGroups(version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Pair<Int, Int?> {
         // FIXME: No hardcoded table -> try to figure out how they can be calculated
 
@@ -453,6 +560,14 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method gets the data capacity in bits for a specific version
+     *
+     * @param capacityInBits The total capacity of this qr code
+     * @param version The version for which the data capacity shall be determined
+     * @param errorCorrectionLevel The error correction level for which the data capacity shall be determined
+     * @return The data capacity in bits
+     */
     private fun getDataCapacityInBits(capacityInBits: Int, version: Int, errorCorrectionLevel: ErrorCorrectionLevel): Int {
         val remainderBits = getRemainderBits(version)
         val errorCorrectionCodesPerBlock = getErrorCorrectionCodesPerBlock(version, errorCorrectionLevel)
@@ -464,12 +579,27 @@ class QRCodeEncoder : BarcodeEncoder {
         return capacityInBits - errorCorrectionBits
     }
 
+    /**
+     * This method gets the data capacity in characters for a specific version and encoding mode
+     *
+     * @param version The version for which the data capacity shall be determined
+     * @param errorCorrectionLevel The error correction level for which the data capacity shall be determined
+     * @param encodingMode The encoding mode for which the data capacity shall be determined
+     * @return The data capacity in characters
+     */
     fun getDataCapacityForEncodingMode(version: Int, errorCorrectionLevel: ErrorCorrectionLevel, encodingMode: EncodingMode): Int {
         val dataCapacityInBits = getDataCapacityInBits(getCapacityInBits(version), version, errorCorrectionLevel)
         // capacityInBits - 4 Bits (to select encoding mode) - Character Count Indicator / Bits per X Digits * X Digits = Charcount
         return ((dataCapacityInBits - 4.0 - getCharCountIndicatorSize(version, encodingMode)) / encodingMode.bitsPerDigits * encodingMode.digits).toInt()
     }
 
+    /**
+     * This method gets the length of the char count indication bits
+     *
+     * @param version The version for which the length of the char count indication bits shall be determined
+     * @param encodingMode The encoding mode for which the length of the char count indication bits shall be determined
+     * @return The length of the char count indication bits
+     */
     private fun getCharCountIndicatorSize(version: Int, encodingMode: EncodingMode): Int {
         // See https://en.wikipedia.org/wiki/QR_code#Encoding
         return when(version) {
@@ -495,6 +625,12 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method gets the length of the remainder bits (sometimes the final message is not long enough, so the remainder '0' bits must be added to the end of the payload)
+     *
+     * @param version The version for which the length of the remainder bits shall be determined
+     * @return The length of the remainder bits
+     */
     private fun getRemainderBits(version: Int): Int {
         // https://www.thonky.com/qr-code-tutorial/structure-final-message
         return when(version) {
@@ -506,6 +642,13 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method gets the correct encoding mode for a given content to ensure that the biggest capacity is available
+     *
+     * @param content The content which shall be encoded
+     * @param charset The charset of the content string
+     * @return The correct encoding mode
+     */
     fun getEncodingModeForContent(content: String, charset: Charset): EncodingMode {
         return when {
             content.matches(Regex("^\\d+$")) -> { EncodingMode.NUMERIC }
@@ -515,6 +658,13 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method encodes the actual content string using the given encoding mode
+     *
+     * @param content The content which shall be encoded
+     * @param encodingMode The encoding mode to be used
+     * @return The encoded content
+     */
     private fun encodeContent(content: String, encodingMode: EncodingMode): String {
         var output = ""
 
@@ -579,6 +729,12 @@ class QRCodeEncoder : BarcodeEncoder {
         }
     }
 
+    /**
+     * This method masks the data and error correction bits in the matrix
+     *
+     * @param matrix The matrix-map in which the bits shall be masked (only reserved areas shall be spared)
+     * @return The mask which was used to mask the bits
+     */
     private fun putMaskOverMatrix(matrix: Map<String, Array<BooleanArray>>): MaskPattern {
         val values = matrix.values()
         val reserved = matrix.reserved()

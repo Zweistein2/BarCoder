@@ -16,33 +16,16 @@
 
 package de.zweistein2.barcoder.util
 
-import kotlin.math.pow
+import de.zweistein2.barcoder.util.GaloisUtil.addGalois
+import de.zweistein2.barcoder.util.GaloisUtil.multiplyGalois
 
+/**
+ * This class represents a polynomial
+ *
+ * @param degree The (highest) degree the polynomial should have
+ * @param coefficients The list of coefficients of the polynomial (if there is no x^n at a specific position the corresponding coefficient should be 0 not "null")
+ */
 class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
-    companion object {
-        fun powerGalois(exponent: Int): Int {
-            var result: Int
-
-            when {
-                exponent < 8 -> { return 2.0.pow(exponent).toInt() }
-                exponent == 8 -> { return 2.0.pow(exponent).toInt() xor 285 }
-                else -> {
-                    val tempExp = exponent - 8
-                    result = 2.0.pow(8).toInt() xor 285
-
-                    for(i in 1..tempExp) {
-                        result *= 2
-
-                        if(result > 256) {
-                            result = result xor 285
-                        }
-                    }
-                }
-            }
-
-            return result
-        }
-    }
 
     init {
         require(degree == coefficients.size - 1) {"number of coefficients doesn't match required polynomial degree"}
@@ -53,6 +36,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         }
     }
 
+    /**
+     * This method multiplies the current polynomial with another
+     *
+     * @param other The other polynomial needed for the multiplication
+     * @return The resulting polynomial
+     */
     fun multiplyWith(other: Polynomial): Polynomial {
         val aCoefficients = coefficients
         val aLength = aCoefficients.size
@@ -71,6 +60,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
+    /**
+     * This method multiplies the current polynomial by a monomial (x^n)
+     *
+     * @param degree The degree of the monomial (n)
+     * @return The resulting polynomial
+     */
     fun multiplyByMonomial(degree: Int): Polynomial {
         val product = MutableList(coefficients.size + degree) { 0 }
 
@@ -81,6 +76,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
+    /**
+     * This method multiplies the current polynomial by a scalar (n)
+     *
+     * @param scalar The scalar (n)
+     * @return The resulting polynomial
+     */
     fun multiplyBy(scalar: Int): Polynomial {
         val product = MutableList(coefficients.size) { 0 }
 
@@ -91,6 +92,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
+    /**
+     * This method evaluates the polynomial for a given x
+     *
+     * @param x The value x should have for the evaluation
+     * @return The result
+     */
     fun evaluate(x: Int): Int {
         var y = coefficients[0]
 
@@ -101,6 +108,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return y
     }
 
+    /**
+     * This method divides the current polynomial by another
+     *
+     * @param other The other polynomial needed for the division
+     * @return The resulting polynomial
+     */
     fun divideBy(other: Polynomial): Polynomial {
         val product = MutableList(coefficients.size) { 0 }
 
@@ -119,6 +132,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
+    /**
+     * This method xors the current polynomial with another
+     *
+     * @param other The other polynomial needed for the xor-operation
+     * @return The resulting polynomial
+     */
     fun xorWith(other: Polynomial): Polynomial {
         val product = MutableList(coefficients.size) { 0 }
 
@@ -129,6 +148,12 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
+    /**
+     * This method adds another polynomial to the the current one
+     *
+     * @param other The other polynomial needed for the addition
+     * @return The resulting polynomial
+     */
     fun add(other: Polynomial): Polynomial {
         val aCoefficients = coefficients
         val aLength = aCoefficients.size
@@ -147,30 +172,11 @@ class Polynomial(var degree: Int, val coefficients: MutableList<Int>) {
         return Polynomial(product.size - 1, product)
     }
 
-    private fun multiplyGalois(exponentA: Int, exponentB: Int): Int {
-        var newExponent = getGaloisExponent(exponentA) + getGaloisExponent(exponentB)
-
-        while(newExponent > 256) {
-            newExponent %= 255
-        }
-
-        return powerGalois(newExponent)
-    }
-
-    private fun getGaloisExponent(intValue: Int): Int {
-        for(i in 0..256) {
-            if(powerGalois(i) == intValue) {
-                return i
-            }
-        }
-
-        return -1
-    }
-
-    private fun addGalois(a: Int, b: Int): Int {
-        return a xor b
-    }
-
+    /**
+     * This method generates a string representation of the current polynomial
+     *
+     * @return The polynomial represented by a string
+     */
     override fun toString(): String {
         val result: StringBuilder = StringBuilder()
 

@@ -16,6 +16,12 @@
 
 package de.zweistein2.barcoder.qrcode
 
+/**
+ * The mask patterns used for qr code generation
+ *
+ * @param bitSequence The binary string representation of the mask (needed to generate the appropriate format bits)
+ * @param formula The formula used to mask the data (and error correction) bits
+ */
 enum class MaskPattern(val bitSequence: String, val formula: (Int, Int) -> Boolean) {
     PATTERN_1("000", { row, col -> (row + col) % 2 == 0 } ),
     PATTERN_2("001", { row, _ -> row % 2 == 0 }),

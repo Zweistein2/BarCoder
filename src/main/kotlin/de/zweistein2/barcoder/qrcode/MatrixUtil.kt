@@ -22,8 +22,17 @@ import de.zweistein2.barcoder.qrcode.QRCodeEncoder.Companion.toBinaryString
 import de.zweistein2.barcoder.qrcode.QRCodeEncoder.Companion.values
 import kotlin.math.roundToInt
 
+/**
+ * A utility class for all matrix-related functions
+ */
 object MatrixUtil {
-    fun initiateMatrix(version: Int): Map<String, Array<BooleanArray>> {
+    /**
+     * This method initializes a matrix with the basic function patterns and the corresponding reserved areas applied
+     *
+     * @param version The version of the qr code (needed for size and calculation of alignment patterns)
+     * @return A map containing two matrices. One for the data and one for the reserved areas
+     */
+    fun initializeMatrix(version: Int): Map<String, Array<BooleanArray>> {
         val size = version * 4 + 17
         val matrix = mapOf(
             Pair("Values", Array(size) { BooleanArray(size) }),
@@ -55,6 +64,12 @@ object MatrixUtil {
         return matrix
     }
 
+    /**
+     * This method calculates the coordinates of the alignment patterns
+     *
+     * @param version The version for which the alignment patterns shall be calculated
+     * @return A list of coordinates
+     */
     fun getAlignmentCoordinates(version: Int): List<Pair<Int, Int>> {
         val alignmentCoordinates = mutableListOf<Pair<Int, Int>>()
         val size = version * 4 + 17
@@ -90,45 +105,57 @@ object MatrixUtil {
         return alignmentCoordinates
     }
 
-    fun placeFormatInMatrix(matrix: Map<String, Array<BooleanArray>>, formatBits: String) {
-        val size = matrix.values().size
+    /**
+     * This method places the format bits into the matrix
+     *
+     * @param matrix The data values of the matrix
+     * @param formatBits The binary string representation of the format bits
+     */
+    fun placeFormatInMatrix(matrix: Array<BooleanArray>, formatBits: String) {
+        val size = matrix.size
 
         for(i in 0 until 15) {
             val bit = formatBits[i] == '1'
 
             when {
                 i < 6 -> {
-                    matrix.values()[8][i] = bit
-                    matrix.values()[size-(i+1)][8] = bit
+                    matrix[8][i] = bit
+                    matrix[size-(i+1)][8] = bit
                 }
                 i == 6 -> {
-                    matrix.values()[8][7] = bit
-                    matrix.values()[size-7][8] = bit
+                    matrix[8][7] = bit
+                    matrix[size-7][8] = bit
                 }
                 i == 7 -> {
-                    matrix.values()[8][8] = formatBits[7] == '1'
-                    matrix.values()[8][size-8] = formatBits[7] == '1'
+                    matrix[8][8] = formatBits[7] == '1'
+                    matrix[8][size-8] = formatBits[7] == '1'
                 }
                 i == 8 -> {
-                    matrix.values()[7][8] = bit
-                    matrix.values()[8][size-7] = bit
+                    matrix[7][8] = bit
+                    matrix[8][size-7] = bit
                 }
                 i > 8 -> {
-                    matrix.values()[14-i][8] = bit
-                    matrix.values()[8][size-(14-i+1)] = bit
+                    matrix[14-i][8] = bit
+                    matrix[8][size-(14-i+1)] = bit
                 }
             }
         }
     }
 
-    fun placeVersionInMatrix(matrix: Map<String, Array<BooleanArray>>, versionBits: String) {
-        val size = matrix.values().size
+    /**
+     * This method places the version bits into the matrix
+     *
+     * @param matrix The data values of the matrix
+     * @param versionBits The binary string representation of the version bits
+     */
+    fun placeVersionInMatrix(matrix: Array<BooleanArray>, versionBits: String) {
+        val size = matrix.size
 
         var counter = 17
 
         for(y in 0 until 6) {
             for(x in 2 downTo 0) {
-                matrix.values()[y][size-(9+x)] = versionBits[counter] == '1'
+                matrix[y][size-(9+x)] = versionBits[counter] == '1'
                 counter--
             }
         }
@@ -138,12 +165,18 @@ object MatrixUtil {
         for(x in 0 until 6) {
             for(y in 2 downTo 0) {
                 // Hier werden alle mit "Bit" überschrieben
-                matrix.values()[size-(9+y)][x] = versionBits[counter] == '1'
+                matrix[size-(9+y)][x] = versionBits[counter] == '1'
                 counter--
             }
         }
     }
 
+    /**
+     * This method places the payload bits into the matrix
+     *
+     * @param matrix The map containing the data matrix and the reserved area matrix
+     * @param finalPayload The payload bits as a list of 8-bit numbers
+     */
     fun placePayloadInMatrix(matrix: Map<String, Array<BooleanArray>>, finalPayload: MutableList<Int>) {
         val payloadBits = finalPayload.stream().map { it.toBinaryString(8) }.reduce { s1, s2 -> s1 + s2 }.orElse("")
         val size = matrix.values().size
@@ -187,6 +220,13 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method generates an alignment pattern at the provided coordinates
+     *
+     * @param matrix The data values of the matrix
+     * @param x The x coordinate where the alignment pattern shall be generated
+     * @param y The y coordinate where the alignment pattern shall be generated
+     */
     private fun generateAlignmentPattern(matrix: Array<BooleanArray>, x: Int, y: Int) {
         for((rowIndex, row) in matrix.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -200,6 +240,13 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method reserves the area of an alignment pattern at the provided coordinates
+     *
+     * @param reserved The reserved area values of the matrix
+     * @param x The x coordinate where the alignment pattern shall be generated
+     * @param y The y coordinate where the alignment pattern shall be generated
+     */
     private fun reserveAlignmentPattern(reserved: Array<BooleanArray>, x: Int, y: Int) {
         for((rowIndex, row) in reserved.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -211,6 +258,13 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method generates a finder pattern at the provided coordinates
+     *
+     * @param matrix The data values of the matrix
+     * @param x The x coordinate where the finder pattern shall be generated
+     * @param y The y coordinate where the finder pattern shall be generated
+     */
     private fun generateFinderPattern(matrix: Array<BooleanArray>, x: Int, y: Int) {
         for((rowIndex, row) in matrix.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -225,6 +279,13 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method reserves the area of a finder pattern at the provided coordinates
+     *
+     * @param reserved The reserved area values of the matrix
+     * @param x The x coordinate where the finder pattern shall be generated
+     * @param y The y coordinate where the finder pattern shall be generated
+     */
     private fun reserveFinderPattern(reserved: Array<BooleanArray>, x: Int, y: Int) {
         for((rowIndex, row) in reserved.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -238,6 +299,11 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method generates the timing pattern
+     *
+     * @param matrix The data values of the matrix
+     */
     private fun generateTimingPattern(matrix: Array<BooleanArray>) {
         for((rowIndex, row) in matrix.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -250,6 +316,11 @@ object MatrixUtil {
         }
     }
 
+    /**
+     * This method reserves the timing pattern
+     *
+     * @param reserved The reserved area values of the matrix
+     */
     private fun reserveTimingPattern(reserved: Array<BooleanArray>) {
         for((rowIndex, row) in reserved.withIndex()) {
             for((colIndex, _) in row.withIndex()) {
@@ -262,6 +333,15 @@ object MatrixUtil {
         }
     }
 
+
+    /**
+     * This method reserves the version pattern if necessary (Only for version 7 and above)
+     *
+     * @param version The version (used for checking if it is necessary to reserve a version pattern)
+     * @param reserved The reserved area values of the matrix
+     * @param x The x coordinate where the version pattern shall be generated
+     * @param y The y coordinate where the version pattern shall be generated
+     */
     private fun reserveVersionPatternIfNecessary(version: Int, reserved: Array<BooleanArray>, x: Int, y: Int) {
         if (version < 7) {
             return

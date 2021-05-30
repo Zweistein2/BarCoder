@@ -16,6 +16,7 @@
 
 package de.zweistein2.barcoder.util
 
+import de.zweistein2.barcoder.util.GaloisUtil.powerGalois
 import org.junit.jupiter.api.Test
 
 import org.junit.jupiter.api.Assertions.*
@@ -28,8 +29,8 @@ internal class PolynomialTest {
 
     @Test
     fun multiplyWithTest() {
-        val firstPoly = Polynomial(1, mutableListOf(1, Polynomial.powerGalois(0)))
-        val secondPoly = Polynomial(1, mutableListOf(1, Polynomial.powerGalois(1)))
+        val firstPoly = Polynomial(1, mutableListOf(1, powerGalois(0)))
+        val secondPoly = Polynomial(1, mutableListOf(1, powerGalois(1)))
 
         assertEquals("x^2 + 3x + 2", firstPoly.multiplyWith(secondPoly).toString())
     }

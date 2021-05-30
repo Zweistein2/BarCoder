@@ -9,14 +9,20 @@
     <a href="https://sonar.potionlabs.de/dashboard?id=BarCoder%3Amaster"><img alt="Coverage" src="https://sonar.potionlabs.de/api/project_badges/measure?project=BarCoder%3Amaster&metric=coverage"/></a>
     <a href="https://www.apache.org/licenses/LICENSE-2.0"><img alt="License Apache 2.0" src="https://img.shields.io/github/license/Zweistein2/BarCoder"/></a>
     <a href="https://github.com/Zweistein2/BarCoder"><img alt="GitHub repo size" src="https://img.shields.io/github/repo-size/Zweistein2/BarCoder"></a>
-    <a href="https://github.com/Zweistein2/BarCoder"><img alt="GitHub latest release" src="https://img.shields.io/github/v/release/Zweistein2/Barcoder?sort=semver"></a>
+    <a href="https://github.com/Zweistein2/BarCoder/releases"><img alt="GitHub latest release" src="https://img.shields.io/github/v/release/Zweistein2/Barcoder?sort=semver"></a>
 </p>
 
 ------
 
 # Purpose
 
-BarCoder is an open-source library written in kotlin. Its main purpose is to provide a small tool capable of generating qr-codes
+BarCoder is an open-source library written in kotlin. Its main purpose is to provide a small tool capable of generating qr codes
+
+# Known Bugs
+
+* the qrcode generation isn't working correctly if the version exceeds a certain size
+* kanji-mode isn't working
+* any other charset than ISO_8859_1 isn't working
 
 # Contribution
 

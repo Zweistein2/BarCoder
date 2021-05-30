@@ -1,7 +1,7 @@
 plugins {
     id 'application'
-    id 'org.openjfx.javafxplugin' version '0.0.8' // REMOVE, FOR TESTS ONLY
     id 'org.jetbrains.kotlin.jvm' version '1.5.0'
+    id 'org.jetbrains.dokka' version '1.4.32'
     id 'jacoco'
     id 'idea'
     id 'java'
@@ -39,14 +39,7 @@ repositories {
     }
 }
 
-// REMOVE, FOR TESTS ONLY
-javafx {
-    version = "11.0.2"
-    modules = ['javafx.controls', 'javafx.graphics']
-}
-
 dependencies {
-    implementation 'no.tornado:tornadofx:1.7.20' // REMOVE, FOR TESTS ONLY
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation 'org.slf4j:slf4j-api:1.7.30'
     implementation 'org.slf4j:slf4j-log4j12:1.7.30'
