@@ -26,15 +26,15 @@ repositories {
     maven {
         url "https://reposilite.potionlabs.de/releases"
         credentials {
-            username = "admin"
-            password = "wTSQlH2SeI78wg+r4/nvpxeRGTttaaKsXnTmcINVfyL6pWk5h6OUq/aLMUj0P0XY"
+            username = mavenUser
+            password = mavenPassword
         }
     }
     maven {
         url "https://reposilite.potionlabs.de/snapshots"
         credentials {
-            username = "admin"
-            password = "wTSQlH2SeI78wg+r4/nvpxeRGTttaaKsXnTmcINVfyL6pWk5h6OUq/aLMUj0P0XY"
+            username = mavenUser
+            password = mavenPassword
         }
     }
 }
